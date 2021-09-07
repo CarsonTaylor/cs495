@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#!/usr/bin/env python
+
 import rospy
 from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
@@ -31,23 +31,35 @@ class TurtleBot:
         self.rate = rospy.Rate(10)
 
     def update_pose(self, data):
-        # Add code to update self.pose
+	self.pose = data
+	self.pose.x = round(self.pose.x, 4)
+	self.pose.y = round(self.pose.y, 4)
 
         # The following function is used to add a small amount of noise 
-        self.applyMomentum(self.pose.x, 5, self.pose.theta, self.pose.linear_velocity)
+	self.applyMomentum(self.pose.x, 5, self.pose.theta, self.pose.linear_velocity)
     
     def applyMomentum(self, x, y, z, mag):
         # adds noise to robot position
         robot.turtle2_teleport(x + mag, y, z)
 
     def stop(self):
-         # Stop robot after the movement is over.
+        # Stop robot after the movement is over.
+	self.stop()
 
     def setLinearVelocity(self, u):
-        # Set turtle linear velocity to X
+	# Set turtle linear velocity to X
+	self.twist = Twist()
+	self.twist.linear.x = u
+	self.velocity_publisher.publish(self.twist)
+      
 
     def getGoalPose(self, x, y):
         # Create and return goal_pose object (hint: Pose())
+	self.goal_pose = Pose()
+	self.goal_pose.x = 5
+	self.goal_pose.y = 5
+	return self.goal_pose
+      
 
     def getTime(self, start):
         now = rospy.get_rostime()
@@ -55,6 +67,7 @@ class TurtleBot:
         return curTime
 
     def getError(self, goalX, robotX):
+	return goalX - robotX
         # Return error between the goal X position and the turtle x position
 
     def move2goal(self, x, y):
@@ -67,12 +80,16 @@ class TurtleBot:
 
             # Use error to generate proportional control signal that modifies the turtle X position. Hint: use setLinearVelocity function
             # Your solution must include a Kp gain term
+	    kp = .05
+	    u = error * kp
 
-            rospy.loginfo("X: %f, Time: %i", self.pose.x, self.getTime(start))
+            rospy.loginfo("X: %f, Time: %f", self.pose.x, self.getTime(start))
 
             # Update linearVelocity to equal your control signal
            
-            #linearVelocity = ?
+            linearVelocity = u
+	    self.setLinearVelocity(linearVelocity)
+		
 
             # Note: you also need to call self.setLinearVelocity() withing this loop
             
